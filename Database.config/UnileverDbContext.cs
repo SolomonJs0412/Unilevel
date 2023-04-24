@@ -1,3 +1,4 @@
+using System.Reflection.Emit;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -11,6 +12,10 @@ namespace Unilever.v1.Database.config
 {
     public class UnileverDbContext : DbContext
     {
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {        //base.OnModelCreating(modelBuilder);
+        }
+
         public UnileverDbContext(DbContextOptions<UnileverDbContext> options) : base(options) { }
         public DbSet<Area> Area { get; set; }
         public DbSet<User> User { get; set; }

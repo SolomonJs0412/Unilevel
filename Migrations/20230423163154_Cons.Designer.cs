@@ -12,7 +12,7 @@ using Unilever.v1.Database.config;
 namespace Unilever.v1.Migrations
 {
     [DbContext(typeof(UnileverDbContext))]
-    [Migration("20230421163933_Cons")]
+    [Migration("20230423163154_Cons")]
     partial class Cons
     {
         /// <inheritdoc />
@@ -27,14 +27,14 @@ namespace Unilever.v1.Migrations
 
             modelBuilder.Entity("Unilever.v1.Models.AreaConf.Area", b =>
                 {
-                    b.Property<int>("AreaCd")
+                    b.Property<int>("AreaId")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("AreaCd"));
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("AreaId"));
 
-                    b.Property<int?>("AreaCode")
-                        .HasColumnType("int");
+                    b.Property<string>("AreaCd")
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("AreaName")
                         .HasColumnType("nvarchar(max)");
@@ -45,7 +45,7 @@ namespace Unilever.v1.Migrations
                     b.Property<string>("Users")
                         .HasColumnType("nvarchar(max)");
 
-                    b.HasKey("AreaCd");
+                    b.HasKey("AreaId");
 
                     b.ToTable("Area");
                 });
@@ -75,12 +75,19 @@ namespace Unilever.v1.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("UserCd"));
 
-                    b.Property<int>("AreaCdFK")
-                        .HasColumnType("int");
+                    b.Property<string>("AreaCdFK")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("CreatedTime")
+                        .HasColumnType("datetime2");
 
                     b.Property<string>("Email")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("ExpiresTime")
+                        .HasColumnType("datetime2");
 
                     b.Property<string>("Name")
                         .IsRequired()
@@ -91,6 +98,10 @@ namespace Unilever.v1.Migrations
 
                     b.Property<byte[]>("PasswordSalt")
                         .HasColumnType("varbinary(max)");
+
+                    b.Property<string>("RefreshToken")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Reporter")
                         .HasColumnType("nvarchar(max)");

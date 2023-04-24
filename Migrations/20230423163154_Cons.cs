@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore.Migrations;
+﻿using System;
+using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
@@ -14,16 +15,16 @@ namespace Unilever.v1.Migrations
                 name: "Area",
                 columns: table => new
                 {
-                    AreaCd = table.Column<int>(type: "int", nullable: false)
+                    AreaId = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
+                    AreaCd = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     AreaName = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    AreaCode = table.Column<int>(type: "int", nullable: true),
                     Distributors = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     Users = table.Column<string>(type: "nvarchar(max)", nullable: true)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Area", x => x.AreaCd);
+                    table.PrimaryKey("PK_Area", x => x.AreaId);
                 });
 
             migrationBuilder.CreateTable(
@@ -45,14 +46,17 @@ namespace Unilever.v1.Migrations
                 {
                     UserCd = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    AreaCdFK = table.Column<int>(type: "int", nullable: false),
+                    AreaCdFK = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Email = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Name = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Status = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Role = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     Reporter = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     PasswordHash = table.Column<byte[]>(type: "varbinary(max)", nullable: true),
-                    PasswordSalt = table.Column<byte[]>(type: "varbinary(max)", nullable: true)
+                    PasswordSalt = table.Column<byte[]>(type: "varbinary(max)", nullable: true),
+                    RefreshToken = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    CreatedTime = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    ExpiresTime = table.Column<DateTime>(type: "datetime2", nullable: false)
                 },
                 constraints: table =>
                 {

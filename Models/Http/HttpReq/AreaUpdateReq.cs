@@ -4,11 +4,10 @@ using System.Linq;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
 
-namespace Unilever.v1.Models.AreaConf
+namespace Unilever.v1.Models.Http.HttpReq
 {
-    public class AreaDto
+    public class AreaUpdateReq
     {
-        public string AreaCd { get; set; }
         public String? AreaName { get; set; }
 
         [JsonProperty("distributor_lst")]
@@ -16,5 +15,7 @@ namespace Unilever.v1.Models.AreaConf
 
         [JsonProperty("user_lst")]
         public string? Users { get; set; }
+
+        public AreaUpdateReq() { }
     }
 }
