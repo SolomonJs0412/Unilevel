@@ -2,12 +2,17 @@ using System;
 using System.Collections.Generic;
 using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
+using System.Net;
+using System.Net.Mail;
 using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text.Json;
 using System.Threading.Tasks;
+using MailKit.Security;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
+using Newtonsoft.Json;
+using Unilever.v1.Common;
 using Unilever.v1.Database.config;
 using Unilever.v1.Models.Token;
 using Unilever.v1.Models.UserConf;
@@ -29,20 +34,38 @@ namespace Unilever.v1.Controllers
 
         public static User user = new User();
 
+
         [HttpPost]
         [Route("register")]
         public async Task<ActionResult<User>> Register(UserDto req)
         {
-            CreatePasswordHash(req.Password, out byte[] passwordHash, out byte[] passwordSalt);
             var AreaCd = req.AreaCdFK;
             var isExist = _dbContext.Area.SingleOrDefault(a => a.AreaCd == AreaCd);
             if (isExist == null)
             {
                 return BadRequest("Not avalable Area");
             }
+
+            //add new account's email to Area which have this account
+            var users = ConvertJsonToStringList(isExist.Users);
+            users.Add(req.Email);
+            isExist.Users = ConvertStringToJson(users);
+
+            string password = GenerateRandomString();
+            CreatePasswordHash(password, out byte[] passwordHash, out byte[] passwordSalt);
+
+            //create a new account
             var NewUser = new User(req.Name, req.Email, req.AreaCdFK, req.Status, req.Role, req.Reporter, passwordHash, passwordSalt);
             _dbContext.Add(NewUser);
             await _dbContext.SaveChangesAsync();
+
+
+            MailerService mailer = new MailerService();
+            string recipient = req.Email;
+            string subject = "Welcome to our site!";
+            string body = $"Your login account information: \n Email: {req.Email} \n Password: {password}";
+            mailer.SendMail(recipient, subject, body);
+
             return CreatedAtAction(nameof(Register), new { Username = req.Name }, user);
         }
 
@@ -161,6 +184,25 @@ namespace Unilever.v1.Controllers
             crrUser.CreatedTime = refreshToken.Created;
             crrUser.ExpiresTime = refreshToken.Expires;
         }
-    }
 
+        private List<string> ConvertJsonToStringList(string json)
+        {
+            List<string> stringList = JsonConvert.DeserializeObject<List<string>>(json);
+            return stringList;
+        }
+
+        private string ConvertStringToJson(List<string> users)
+        {
+            string json = JsonConvert.SerializeObject(users);
+            return json;
+        }
+
+        public static string GenerateRandomString()
+        {
+            const string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+            var random = new Random();
+            return new string(Enumerable.Repeat(chars, 16)
+                .Select(s => s[random.Next(s.Length)]).ToArray());
+        }
+    }
 }

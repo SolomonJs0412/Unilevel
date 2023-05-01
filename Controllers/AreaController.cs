@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Newtonsoft.Json;
 using Unilever.v1.Database.config;
 using Unilever.v1.Models.AreaConf;
 using Unilever.v1.Models.Http.HttpReq;
@@ -29,11 +30,16 @@ namespace Unilever.v1.Controllers
         [Route("news")]
         public async Task<ActionResult<Area>> CreateNewArea(AreaDto area)
         {
+            List<string> users = new List<string>();
+            users.Add(area.Users);
+            string userJs = JsonConvert.SerializeObject(users);
             var newArea = new Area();
             newArea.AreaCd = area.AreaCd;
             newArea.AreaName = area.AreaName;
-            newArea.Users = area.Users;
+            newArea.Users = userJs;
             newArea.Distributors = area.Distributors;
+
+
             _dbContext.Add(newArea);
             await _dbContext.SaveChangesAsync();
             return CreatedAtAction(nameof(CreateNewArea), new { Area = area.AreaCd }, newArea);
@@ -107,6 +113,15 @@ namespace Unilever.v1.Controllers
             _dbContext.Area.Remove(isExistArea);
             await _dbContext.SaveChangesAsync();
             return Ok("Deleted successfully");
+        }
+
+
+
+
+        private string ConvertStringToJson(List<string> users)
+        {
+            string json = JsonConvert.SerializeObject(users);
+            return json;
         }
     }
 }
