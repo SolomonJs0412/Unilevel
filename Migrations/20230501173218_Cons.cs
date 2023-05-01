@@ -19,8 +19,8 @@ namespace Unilever.v1.Migrations
                         .Annotation("SqlServer:Identity", "1, 1"),
                     AreaCd = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     AreaName = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    Distributors = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    Users = table.Column<string>(type: "nvarchar(max)", nullable: true)
+                    Distributors = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Users = table.Column<string>(type: "nvarchar(max)", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -62,22 +62,19 @@ namespace Unilever.v1.Migrations
                 {
                     UserCd = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    AreaCdFK = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    AreaCd = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Email = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Name = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Status = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Role = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    Title = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     UserImage = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     Reporter = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     PasswordHash = table.Column<byte[]>(type: "varbinary(max)", nullable: true),
                     PasswordSalt = table.Column<byte[]>(type: "varbinary(max)", nullable: true),
                     RefreshToken = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     CreatedTime = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    ExpiresTime = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    VerificationToken = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    VerifyAt = table.Column<DateTime>(type: "datetime2", nullable: true),
-                    ResetPasswordToken = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    ResetPasswordTokenExpired = table.Column<DateTime>(type: "datetime2", nullable: true)
+                    ExpiresTime = table.Column<DateTime>(type: "datetime2", nullable: false)
                 },
                 constraints: table =>
                 {

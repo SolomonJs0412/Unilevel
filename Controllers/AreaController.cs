@@ -30,14 +30,15 @@ namespace Unilever.v1.Controllers
         [Route("news")]
         public async Task<ActionResult<Area>> CreateNewArea(AreaDto area)
         {
-            List<string> users = new List<string>();
-            users.Add(area.Users);
-            string userJs = JsonConvert.SerializeObject(users);
+            List<string> defaultValue = new List<string>();
+            defaultValue.Add("");
+            string userJs = JsonConvert.SerializeObject(defaultValue);
+            string distributorJs = JsonConvert.SerializeObject(defaultValue);
             var newArea = new Area();
             newArea.AreaCd = area.AreaCd;
             newArea.AreaName = area.AreaName;
             newArea.Users = userJs;
-            newArea.Distributors = area.Distributors;
+            newArea.Distributors = distributorJs;
 
 
             _dbContext.Add(newArea);
@@ -70,24 +71,22 @@ namespace Unilever.v1.Controllers
             var isExistArea = _dbContext.Area.FirstOrDefault(a => a.AreaCd == id);
             if (isExistArea == null) return NotFound("Can't found any area with this code");
 
-            var AreaUsers = await _dbContext.User.Where(u => u.AreaCdFK == id).ToListAsync();
-            if (AreaUsers.Count == 0) return NotFound("No one in that area");
+            var userList = ConvertJsonToStringList(isExistArea.Users);
+            List<AreaUsersRes> users = new List<AreaUsersRes>();
 
-            List<AreaUsersRes> res = new List<AreaUsersRes>();
-            foreach (User user in AreaUsers)
+            foreach (var user in userList)
             {
-                AreaUsersRes filterUser = new AreaUsersRes();
-                filterUser.AreaCdFK = user.AreaCdFK;
-                filterUser.UserCd = user.UserCd;
-                filterUser.Email = user.Email;
-                filterUser.Name = user.Name;
-                filterUser.Status = user.Status;
-                filterUser.Role = user.Role;
-                filterUser.Reporter = user.Reporter;
-                res.Add(filterUser);
+                var AreaUser = _dbContext.User.FirstOrDefault(u => u.Email == user);
+                if (AreaUser == null) continue;
+                AreaUsersRes res = new AreaUsersRes();
+                res.UserCd = AreaUser.UserCd;
+                res.Name = AreaUser.Name;
+                res.Email = AreaUser.Email;
+                res.Role = AreaUser.Role;
+                users.Add(res);
             }
 
-            return Ok(res);
+            return Ok(users);
         }
 
         [HttpPut]
@@ -122,6 +121,12 @@ namespace Unilever.v1.Controllers
         {
             string json = JsonConvert.SerializeObject(users);
             return json;
+        }
+
+        private List<string> ConvertJsonToStringList(string json)
+        {
+            List<string> stringList = JsonConvert.DeserializeObject<List<string>>(json);
+            return stringList;
         }
     }
 }

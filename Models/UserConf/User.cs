@@ -11,12 +11,13 @@ namespace Unilever.v1.Models.UserConf
     {
         [Key]
         public int UserCd { get; set; }
-        public string AreaCdFK { get; set; }
+        public string AreaCd { get; set; }
         public String Email { get; set; } = String.Empty;
         public String Name { get; set; } = String.Empty;
         public string Status { get; set; } = "Active";
         [JsonProperty("role_list")]
         public string? Role { get; set; }
+        public string? Title { get; set; }
         public string? UserImage { get; set; }
         public string? Reporter { get; set; } = String.Empty;
         public byte[]? PasswordHash { get; set; }
@@ -24,19 +25,15 @@ namespace Unilever.v1.Models.UserConf
         public string RefreshToken { get; set; } = string.Empty;
         public DateTime CreatedTime { get; set; }
         public DateTime ExpiresTime { get; set; }
-        public string? VerificationToken { get; set; }
-        public DateTime? VerifyAt { get; set; }
-        public string? ResetPasswordToken { get; set; }
-        public DateTime? ResetPasswordTokenExpired { get; set; }
-
         public User() { }
-        public User(string Name, string Email, string AreaCdFK, string Status, string Role, string Reporter, byte[] PasswordHash, byte[] PasswordSalt)
+        public User(string Name, string Email, string Title, string AreaCd, string Status, string Role, string Reporter, byte[] PasswordHash, byte[] PasswordSalt)
         {
             this.Name = Name;
             this.Email = Email;
+            this.Title = Title;
             this.Status = Status;
             this.Role = Role;
-            this.AreaCdFK = AreaCdFK;
+            this.AreaCd = AreaCd;
             this.Reporter = Reporter;
             this.PasswordHash = PasswordHash;
             this.PasswordSalt = PasswordSalt;

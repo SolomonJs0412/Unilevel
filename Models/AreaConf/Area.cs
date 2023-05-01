@@ -17,10 +17,10 @@ namespace Unilever.v1.Models.AreaConf
         public String? AreaName { get; set; }
 
         [JsonProperty("distributor_lst")]
-        public string? Distributors { get; set; }
+        public string Distributors { get; set; } = string.Empty;
 
         [JsonProperty("user_lst")]
-        public string? Users { get; set; }
+        public string Users { get; set; } = string.Empty;
 
         public Area() { }
 

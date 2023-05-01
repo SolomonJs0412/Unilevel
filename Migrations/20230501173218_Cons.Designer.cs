@@ -12,7 +12,7 @@ using Unilever.v1.Database.config;
 namespace Unilever.v1.Migrations
 {
     [DbContext(typeof(UnileverDbContext))]
-    [Migration("20230430171914_Cons")]
+    [Migration("20230501173218_Cons")]
     partial class Cons
     {
         /// <inheritdoc />
@@ -40,9 +40,11 @@ namespace Unilever.v1.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Distributors")
+                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Users")
+                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.HasKey("AreaId");
@@ -103,7 +105,7 @@ namespace Unilever.v1.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("UserCd"));
 
-                    b.Property<string>("AreaCdFK")
+                    b.Property<string>("AreaCd")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
@@ -134,12 +136,6 @@ namespace Unilever.v1.Migrations
                     b.Property<string>("Reporter")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("ResetPasswordToken")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<DateTime?>("ResetPasswordTokenExpired")
-                        .HasColumnType("datetime2");
-
                     b.Property<string>("Role")
                         .HasColumnType("nvarchar(max)");
 
@@ -147,14 +143,11 @@ namespace Unilever.v1.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<string>("Title")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<string>("UserImage")
                         .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("VerificationToken")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<DateTime?>("VerifyAt")
-                        .HasColumnType("datetime2");
 
                     b.HasKey("UserCd");
 

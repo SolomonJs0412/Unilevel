@@ -14,6 +14,7 @@ using Microsoft.IdentityModel.Tokens;
 using Newtonsoft.Json;
 using Unilever.v1.Common;
 using Unilever.v1.Database.config;
+using Unilever.v1.Models.Http.HttpRes.User;
 using Unilever.v1.Models.Token;
 using Unilever.v1.Models.UserConf;
 
@@ -34,12 +35,32 @@ namespace Unilever.v1.Controllers
 
         public static User user = new User();
 
+        [HttpGet]
+        [Route("users")]
+        public async Task<ActionResult<AllUsersRes>> GetAllUsers()
+        {
+            List<AllUsersRes> res = new List<AllUsersRes>();
+            var users = _dbContext.User.ToList();
+            foreach (User u in users)
+            {
+                AllUsersRes user = new AllUsersRes();
+                user.UserCd = u.UserCd;
+                user.Name = u.Name;
+                user.Email = u.Email;
+                user.Title = u.Title;
+                user.AreaCd = _dbContext.Area.FirstOrDefault(a => a.AreaCd == u.AreaCd).AreaName;
+                user.Status = u.Status;
+                user.Reporter = u.Reporter;
+                res.Add(user);
+            }
+            return Ok(res);
+        }
 
         [HttpPost]
         [Route("register")]
         public async Task<ActionResult<User>> Register(UserDto req)
         {
-            var AreaCd = req.AreaCdFK;
+            var AreaCd = req.AreaCd;
             var isExist = _dbContext.Area.SingleOrDefault(a => a.AreaCd == AreaCd);
             if (isExist == null)
             {
@@ -55,7 +76,7 @@ namespace Unilever.v1.Controllers
             CreatePasswordHash(password, out byte[] passwordHash, out byte[] passwordSalt);
 
             //create a new account
-            var NewUser = new User(req.Name, req.Email, req.AreaCdFK, req.Status, req.Role, req.Reporter, passwordHash, passwordSalt);
+            var NewUser = new User(req.Name, req.Email, req.Title, req.AreaCd, req.Status, req.Role, req.Reporter, passwordHash, passwordSalt);
             _dbContext.Add(NewUser);
             await _dbContext.SaveChangesAsync();
 
@@ -212,6 +233,9 @@ namespace Unilever.v1.Controllers
 
         private List<string> ConvertJsonToStringList(string json)
         {
+            if(json == "") {
+                
+            }
             List<string> stringList = JsonConvert.DeserializeObject<List<string>>(json);
             return stringList;
         }
