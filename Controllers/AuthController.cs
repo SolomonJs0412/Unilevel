@@ -43,7 +43,7 @@ namespace Unilever.v1.Controllers
             var isExist = _dbContext.Area.SingleOrDefault(a => a.AreaCd == AreaCd);
             if (isExist == null)
             {
-                return BadRequest("Not avalable Area");
+                return BadRequest("Not available Area");
             }
 
             //add new account's email to Area which have this account
@@ -117,6 +117,31 @@ namespace Unilever.v1.Controllers
             await _dbContext.SaveChangesAsync();
 
             return Ok(newRefreshToken);
+        }
+
+        [HttpPost]
+        [Route("reset-password")]
+        public async Task<ActionResult<dynamic>> ResetPassword(string email)
+        {
+            var isExistUser = _dbContext.User.FirstOrDefault(u => u.Email.Contains(email));
+            if (isExistUser == null)
+            {
+                return NotFound("Not found any user with this email address");
+            }
+
+            string newPassword = GenerateRandomString();
+            CreatePasswordHash(newPassword, out byte[] passwordHash, out byte[] passwordSalt);
+            isExistUser.PasswordHash = passwordHash;
+            isExistUser.PasswordSalt = passwordSalt;
+            await _dbContext.SaveChangesAsync();
+
+            MailerService mailer = new MailerService();
+            string recipient = email;
+            string subject = "Welcome to our site!";
+            string body = $"Your user and reset password: \n Email: {email} \n Password: {newPassword}";
+            mailer.SendMail(recipient, subject, body);
+
+            return Ok("Check your email address to get reset password");
         }
 
         //function
