@@ -34,9 +34,15 @@ namespace Unilever.v1.Controllers
             defaultValue.Add("");
             string userJs = JsonConvert.SerializeObject(defaultValue);
             string distributorJs = JsonConvert.SerializeObject(defaultValue);
+            //check duplication area name
+            var isExistingArea = _dbContext.Area.FirstOrDefault(a => a.AreaName.ToUpper() == area.AreaName.ToUpper());
+            if (isExistingArea != null)
+            {
+                return BadRequest("Area name already exists");
+            }
             var newArea = new Area();
-            newArea.AreaCd = area.AreaCd;
-            newArea.AreaName = area.AreaName;
+            newArea.AreaCd = area.AreaCd.ToUpper();
+            newArea.AreaName = area.AreaName.ToUpper();
             newArea.Users = userJs;
             newArea.Distributors = distributorJs;
 

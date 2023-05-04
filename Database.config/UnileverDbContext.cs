@@ -9,6 +9,7 @@ using Unilever.v1.Models.AreaConf;
 using Unilever.v1.Models.RoleConf;
 using Unilever.v1.Models.UserConf;
 using Unilever.v1.Models.DistributorConf;
+using Unilever.v1.Models.Title;
 
 namespace Unilever.v1.Database.config
 {
@@ -22,6 +23,7 @@ namespace Unilever.v1.Database.config
         public DbSet<Area> Area { get; set; }
         public DbSet<User> User { get; set; }
         public DbSet<Role> Role { get; set; }
+        public DbSet<Title> Title { get; set; }
         public DbSet<Distributor> Distributor { get; set; }
     }
 }

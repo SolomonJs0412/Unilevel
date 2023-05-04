@@ -94,6 +94,26 @@ namespace Unilever.v1.Migrations
                     b.ToTable("Role");
                 });
 
+            modelBuilder.Entity("Unilever.v1.Models.Title.Title", b =>
+                {
+                    b.Property<int>("TitleCd")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("TitleCd"));
+
+                    b.Property<string>("TitleDescription")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("TitleName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("TitleCd");
+
+                    b.ToTable("Title");
+                });
+
             modelBuilder.Entity("Unilever.v1.Models.UserConf.User", b =>
                 {
                     b.Property<int>("UserCd")

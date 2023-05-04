@@ -12,7 +12,7 @@ using Unilever.v1.Database.config;
 namespace Unilever.v1.Migrations
 {
     [DbContext(typeof(UnileverDbContext))]
-    [Migration("20230501173218_Cons")]
+    [Migration("20230504150835_Cons")]
     partial class Cons
     {
         /// <inheritdoc />
@@ -95,6 +95,26 @@ namespace Unilever.v1.Migrations
                     b.HasKey("RoleCd");
 
                     b.ToTable("Role");
+                });
+
+            modelBuilder.Entity("Unilever.v1.Models.Title.Title", b =>
+                {
+                    b.Property<int>("TitleCd")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("TitleCd"));
+
+                    b.Property<string>("TitleDescription")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("TitleName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("TitleCd");
+
+                    b.ToTable("Title");
                 });
 
             modelBuilder.Entity("Unilever.v1.Models.UserConf.User", b =>

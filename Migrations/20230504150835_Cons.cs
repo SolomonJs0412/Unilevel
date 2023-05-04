@@ -57,6 +57,20 @@ namespace Unilever.v1.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "Title",
+                columns: table => new
+                {
+                    TitleCd = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    TitleName = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    TitleDescription = table.Column<string>(type: "nvarchar(max)", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Title", x => x.TitleCd);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "User",
                 columns: table => new
                 {
@@ -93,6 +107,9 @@ namespace Unilever.v1.Migrations
 
             migrationBuilder.DropTable(
                 name: "Role");
+
+            migrationBuilder.DropTable(
+                name: "Title");
 
             migrationBuilder.DropTable(
                 name: "User");

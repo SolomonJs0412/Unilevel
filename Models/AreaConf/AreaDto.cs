@@ -8,7 +8,7 @@ namespace Unilever.v1.Models.AreaConf
 {
     public class AreaDto
     {
-        public string AreaCd { get; set; }
-        public String? AreaName { get; set; }
+        public string AreaCd { get; set; } = string.Empty;
+        public String AreaName { get; set; } = string.Empty;
     }
 }

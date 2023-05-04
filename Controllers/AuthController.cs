@@ -37,7 +37,7 @@ namespace Unilever.v1.Controllers
 
         [HttpGet]
         [Route("users")]
-        public async Task<ActionResult<AllUsersRes>> GetAllUsers()
+        public ActionResult<AllUsersRes> GetAllUsers()
         {
             List<AllUsersRes> res = new List<AllUsersRes>();
             var users = _dbContext.User.ToList();
@@ -61,16 +61,22 @@ namespace Unilever.v1.Controllers
         public async Task<ActionResult<User>> Register(UserDto req)
         {
             var AreaCd = req.AreaCd;
-            var isExist = _dbContext.Area.SingleOrDefault(a => a.AreaCd == AreaCd);
-            if (isExist == null)
+            var isExistArea = _dbContext.Area.SingleOrDefault(a => a.AreaCd == AreaCd);
+            if (isExistArea == null)
             {
                 return BadRequest("Not available Area");
             }
 
+            var isExistTitle = _dbContext.Title.SingleOrDefault(t => t.TitleName.ToUpper() == req.Title.ToUpper());
+            if (isExistTitle == null)
+            {
+                return BadRequest("Not available Title, create one?");
+            }
+
             //add new account's email to Area which have this account
-            var users = ConvertJsonToStringList(isExist.Users);
+            var users = ConvertJsonToStringList(isExistArea.Users);
             users.Add(req.Email);
-            isExist.Users = ConvertStringToJson(users);
+            isExistArea.Users = ConvertStringToJson(users);
 
             string password = GenerateRandomString();
             CreatePasswordHash(password, out byte[] passwordHash, out byte[] passwordSalt);
@@ -233,8 +239,9 @@ namespace Unilever.v1.Controllers
 
         private List<string> ConvertJsonToStringList(string json)
         {
-            if(json == "") {
-                
+            if (json == "")
+            {
+
             }
             List<string> stringList = JsonConvert.DeserializeObject<List<string>>(json);
             return stringList;
