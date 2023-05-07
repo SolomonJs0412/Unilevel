@@ -1,3 +1,4 @@
+using System.Reflection.Metadata;
 using System;
 using System.Collections.Generic;
 using System.IdentityModel.Tokens.Jwt;
@@ -39,61 +40,115 @@ namespace Unilever.v1.Controllers
         [Route("users")]
         public ActionResult<AllUsersRes> GetAllUsers()
         {
-            List<AllUsersRes> res = new List<AllUsersRes>();
-            var users = _dbContext.User.ToList();
-            foreach (User u in users)
+            var token = HttpContext.Request.Cookies.TryGetValue("RefreshToken", out string? cookieValue);
+            if (token)
             {
-                AllUsersRes user = new AllUsersRes();
-                user.UserCd = u.UserCd;
-                user.Name = u.Name;
-                user.Email = u.Email;
-                user.Title = u.Title;
-                user.AreaCd = _dbContext.Area.FirstOrDefault(a => a.AreaCd == u.AreaCd).AreaName;
-                user.Status = u.Status;
-                user.Reporter = u.Reporter;
-                res.Add(user);
+                var userToken = cookieValue;
+
+                if (userToken != null)
+                {
+
+                    if (CheckAccess(userToken, "Admin"))
+                    {
+                        List<AllUsersRes> res = new List<AllUsersRes>();
+                        var users = _dbContext.User.ToList();
+                        foreach (User u in users)
+                        {
+                            AllUsersRes user = new AllUsersRes();
+                            user.UserCd = u.UserCd;
+                            user.Name = u.Name;
+                            user.Email = u.Email;
+                            user.Title = u.Title;
+                            user.AreaCd = _dbContext.Area.FirstOrDefault(a => a.AreaCd == u.AreaCd).AreaName;
+                            user.Status = u.Status;
+                            user.Reporter = u.Reporter;
+                            res.Add(user);
+                        }
+                        return Ok(res);
+                    }
+                    else
+                    {
+                        return Unauthorized("You not allowed to access this resource.");
+                    }
+                }
             }
-            return Ok(res);
+            else
+            {
+                return Unauthorized("Login first");
+            }
+            return Ok("Internal Server error");
+        }
+
+        [HttpGet]
+        [Route("users/{id}")]
+        public ActionResult<dynamic> GetOneUser(int id)
+        {
+            var user = _dbContext.User.FirstOrDefault(u => u.UserCd == id);
+            if (user == null)
+            {
+                return NotFound("User not found");
+            }
+
+            return Ok(user);
         }
 
         [HttpPost]
         [Route("register")]
         public async Task<ActionResult<User>> Register(UserDto req)
         {
-            var AreaCd = req.AreaCd;
-            var isExistArea = _dbContext.Area.SingleOrDefault(a => a.AreaCd == AreaCd);
-            if (isExistArea == null)
+            var token = HttpContext.Request.Cookies.TryGetValue("RefreshToken", out string? cookieValue);
+            if (token)
             {
-                return BadRequest("Not available Area");
+                var userToken = cookieValue;
+
+                if (CheckAccess(userToken, "Admin"))
+                {
+                    var AreaCd = req.AreaCd;
+                    var isExistArea = _dbContext.Area.SingleOrDefault(a => a.AreaCd == AreaCd);
+                    if (isExistArea == null)
+                    {
+                        return BadRequest("Not available Area");
+                    }
+
+                    var isExistTitle = _dbContext.Title.SingleOrDefault(t => t.TitleName.ToUpper() == req.Title.ToUpper());
+                    if (isExistTitle == null)
+                    {
+                        return BadRequest("Not available Title, create one?");
+                    }
+
+                    //add new account's email to Area which have this account
+                    var users = ConvertJsonToStringList(isExistArea.Users);
+                    users.Add(req.Email);
+                    isExistArea.Users = ConvertStringToJson(users);
+
+                    string password = GenerateRandomString();
+                    CreatePasswordHash(password, out byte[] passwordHash, out byte[] passwordSalt);
+
+                    //create a new account
+                    var NewUser = new User(req.Name, req.Email, req.Title, req.AreaCd, req.Status, req.Role, req.Reporter, passwordHash, passwordSalt);
+                    _dbContext.Add(NewUser);
+                    await _dbContext.SaveChangesAsync();
+
+
+                    MailerService mailer = new MailerService();
+                    string recipient = req.Email;
+                    string subject = "Welcome to our site!";
+                    string body = $"Your login account information: \n Email: {req.Email} \n Password: {password}";
+                    mailer.SendMail(recipient, subject, body);
+
+                    return CreatedAtAction(nameof(Register), new { Username = req.Name }, user);
+                }
+                else
+                {
+                    return Unauthorized("You don have permission to access this resource.");
+                }
+            }
+            else
+            {
+                return Unauthorized("Login first to access this resource");
             }
 
-            var isExistTitle = _dbContext.Title.SingleOrDefault(t => t.TitleName.ToUpper() == req.Title.ToUpper());
-            if (isExistTitle == null)
-            {
-                return BadRequest("Not available Title, create one?");
-            }
-
-            //add new account's email to Area which have this account
-            var users = ConvertJsonToStringList(isExistArea.Users);
-            users.Add(req.Email);
-            isExistArea.Users = ConvertStringToJson(users);
-
-            string password = GenerateRandomString();
-            CreatePasswordHash(password, out byte[] passwordHash, out byte[] passwordSalt);
-
-            //create a new account
-            var NewUser = new User(req.Name, req.Email, req.Title, req.AreaCd, req.Status, req.Role, req.Reporter, passwordHash, passwordSalt);
-            _dbContext.Add(NewUser);
-            await _dbContext.SaveChangesAsync();
-
-
-            MailerService mailer = new MailerService();
-            string recipient = req.Email;
-            string subject = "Welcome to our site!";
-            string body = $"Your login account information: \n Email: {req.Email} \n Password: {password}";
-            mailer.SendMail(recipient, subject, body);
-
-            return CreatedAtAction(nameof(Register), new { Username = req.Name }, user);
+            return Ok("Internal server error");
         }
 
         [HttpPost]
@@ -169,6 +224,39 @@ namespace Unilever.v1.Controllers
             mailer.SendMail(recipient, subject, body);
 
             return Ok("Check your email address to get reset password");
+        }
+
+        [HttpGet]
+        [Route("me")]
+        public ActionResult<UserDto> getCurrentUser()
+        {
+            try
+            {
+                if (HttpContext.Request.Cookies.TryGetValue("RefreshToken", out string? cookieValue))
+                {
+                    var token = cookieValue;
+                    var user = _dbContext.User.FirstOrDefault(u => u.RefreshToken == token);
+                }
+                return Unauthorized("Login first");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("Token not found" + ex.Message);
+            }
+            return Ok(user);
+        }
+
+        [HttpGet]
+        [Route("logout")]
+        public ActionResult<dynamic> Logout()
+        {
+            if (HttpContext.Request.Cookies.TryGetValue("RefreshToken", out string? cookieValue))
+            {
+                Response.Cookies.Delete("RefreshToken");
+                return Ok("Successfully logged out");
+            }
+
+            return Unauthorized("Login first to logout bro:)))");
         }
 
         //function
@@ -259,6 +347,36 @@ namespace Unilever.v1.Controllers
             var random = new Random();
             return new string(Enumerable.Repeat(chars, 16)
                 .Select(s => s[random.Next(s.Length)]).ToArray());
+        }
+
+        // public bool CheckAccess(string token, string accessRole)
+        // {
+        //     var user = _dbContext.User.FirstOrDefault(u => u.RefreshToken == token);
+
+        //     if (user != null)
+        //     {
+        //         return user.Role.Contains(accessRole);
+        //     }
+        //     else
+        //     {
+        //         return false;
+        //     }
+        // }
+
+        [HttpPost]
+        public bool CheckAccess(string token, string accessRole)
+        {
+            // ...
+            var user = _dbContext.User.FirstOrDefault(u => u.RefreshToken == token);
+
+            if (user != null)
+            {
+                return user.Role.Contains(accessRole);
+            }
+            else
+            {
+                return false;
+            }
         }
     }
 }
