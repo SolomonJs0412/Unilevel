@@ -24,56 +24,169 @@ namespace Unilever.v1.Controllers
         [Route("all-titles")]
         public ActionResult<List<Title>> GetAllTitles()
         {
-            List<Title> titles = new List<Title>();
-            titles = _dbContext.Title.ToList();
-            if (titles.Count() == 0) return NotFound("No titles available");
-            return Ok(titles);
+            var token = HttpContext.Request.Cookies.TryGetValue("RefreshToken", out string? cookieValue);
+            if (token)
+            {
+                var userToken = cookieValue;
+
+                if (CheckAccess(userToken, "Admin"))
+                {
+                    List<Title> titles = new List<Title>();
+                    titles = _dbContext.Title.ToList();
+                    if (titles.Count() == 0) return NotFound("No titles available");
+                    return Ok(titles);
+                }
+                else
+                {
+                    return Unauthorized("You don have permission to access this resource.");
+                }
+            }
+            else
+            {
+                return Unauthorized("Login first to access this resource");
+            }
+
+            return Ok("Internal server error");
         }
 
         [HttpGet]
         [Route("titles/{id}")]
         public ActionResult<List<Title>> GetTitle([FromHeader] int id)
         {
-            var isExistingTitle = _dbContext.Title.FirstOrDefault(t => t.TitleCd == id);
-            if (isExistingTitle == null) return BadRequest("Title not exists");
-            return Ok(isExistingTitle);
+            var token = HttpContext.Request.Cookies.TryGetValue("RefreshToken", out string? cookieValue);
+            if (token)
+            {
+                var userToken = cookieValue;
+
+                if (CheckAccess(userToken, "Admin"))
+                {
+                    var isExistingTitle = _dbContext.Title.FirstOrDefault(t => t.TitleCd == id);
+                    if (isExistingTitle == null) return BadRequest("Title not exists");
+                    return Ok(isExistingTitle);
+                }
+                else
+                {
+                    return Unauthorized("You don have permission to access this resource.");
+                }
+            }
+            else
+            {
+                return Unauthorized("Login first to access this resource");
+            }
+
+            return Ok("Internal server error");
         }
 
         [HttpPost]
         [Route("new-title")]
         public async Task<ActionResult<dynamic>> NewTitle([FromBody] TitleDto req)
         {
-            var isExistingTitle = _dbContext.Title.FirstOrDefault(t => t.TitleName.ToUpper() == req.TitleName.ToUpper());
-            if (isExistingTitle != null) return BadRequest("Title already exists");
-            Title title = new Title();
-            title.TitleName = req.TitleName;
-            title.TitleDescription = req.TitleDescription;
-            _dbContext.Add(title);
-            await _dbContext.SaveChangesAsync();
+            var token = HttpContext.Request.Cookies.TryGetValue("RefreshToken", out string? cookieValue);
+            if (token)
+            {
+                var userToken = cookieValue;
 
-            return CreatedAtAction(nameof(NewTitle), new { Title = req.TitleName }, title);
+                if (CheckAccess(userToken, "Admin"))
+                {
+                    var isExistingTitle = _dbContext.Title.FirstOrDefault(t => t.TitleName.ToUpper() == req.TitleName.ToUpper());
+                    if (isExistingTitle != null) return BadRequest("Title already exists");
+                    Title title = new Title();
+                    title.TitleName = req.TitleName;
+                    title.TitleDescription = req.TitleDescription;
+                    _dbContext.Add(title);
+                    await _dbContext.SaveChangesAsync();
+
+                    return CreatedAtAction(nameof(NewTitle), new { Title = req.TitleName }, title);
+                }
+                else
+                {
+                    return Unauthorized("You don have permission to access this resource.");
+                }
+            }
+            else
+            {
+                return Unauthorized("Login first to access this resource");
+            }
+
+            return Ok("Internal server error");
         }
 
         [HttpPost]
         [Route("titles/{cd}")]
         public async Task<ActionResult<dynamic>> UpdateTitle([FromBody] TitleDto req)
         {
-            var isExistingTitle = _dbContext.Title.FirstOrDefault(t => t.TitleName.ToUpper() == req.TitleName.ToUpper());
-            if (isExistingTitle == null) return BadRequest("Title is not available");
-            isExistingTitle.TitleName = req.TitleName;
-            isExistingTitle.TitleDescription = req.TitleDescription;
-            await _dbContext.SaveChangesAsync();
 
-            return CreatedAtAction(nameof(NewTitle), new { Title = req.TitleName }, isExistingTitle);
+            var token = HttpContext.Request.Cookies.TryGetValue("RefreshToken", out string? cookieValue);
+            if (token)
+            {
+                var userToken = cookieValue;
+
+                if (CheckAccess(userToken, "Admin"))
+                {
+                    var isExistingTitle = _dbContext.Title.FirstOrDefault(t => t.TitleName.ToUpper() == req.TitleName.ToUpper());
+                    if (isExistingTitle == null) return BadRequest("Title is not available");
+                    isExistingTitle.TitleName = req.TitleName;
+                    isExistingTitle.TitleDescription = req.TitleDescription;
+                    await _dbContext.SaveChangesAsync();
+
+                    return CreatedAtAction(nameof(NewTitle), new { Title = req.TitleName }, isExistingTitle);
+                }
+                else
+                {
+                    return Unauthorized("You don have permission to access this resource.");
+                }
+            }
+            else
+            {
+                return Unauthorized("Login first to access this resource");
+            }
+
+            return Ok("Internal server error");
         }
 
         [HttpDelete]
         [Route("delete/{id}")]
         public dynamic DeleteTitle([FromHeader] int id)
         {
-            var isExistingTitle = _dbContext.Title.FirstOrDefault(t => t.TitleCd == id);
-            if (isExistingTitle == null) return BadRequest("Title is not available");
-            return Ok("Delete Title successfully");
+
+            var token = HttpContext.Request.Cookies.TryGetValue("RefreshToken", out string? cookieValue);
+            if (token)
+            {
+                var userToken = cookieValue;
+
+                if (CheckAccess(userToken, "Admin"))
+                {
+                    var isExistingTitle = _dbContext.Title.FirstOrDefault(t => t.TitleCd == id);
+                    if (isExistingTitle == null) return BadRequest("Title is not available");
+                    return Ok("Delete Title successfully");
+                }
+                else
+                {
+                    return Unauthorized("You don have permission to access this resource.");
+                }
+            }
+            else
+            {
+                return Unauthorized("Login first to access this resource");
+            }
+
+            return Ok("Internal server error");
+        }
+
+        [HttpPost]
+        public bool CheckAccess(string token, string accessRole)
+        {
+            // ...
+            var user = _dbContext.User.FirstOrDefault(u => u.RefreshToken == token);
+
+            if (user != null)
+            {
+                return user.Role.Contains(accessRole);
+            }
+            else
+            {
+                return false;
+            }
         }
     }
 }
