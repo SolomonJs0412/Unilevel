@@ -143,6 +143,9 @@ namespace Unilever.v1.Migrations
                     b.Property<byte[]>("PasswordHash")
                         .HasColumnType("varbinary(max)");
 
+                    b.Property<DateTime>("PasswordLifeTime")
+                        .HasColumnType("datetime2");
+
                     b.Property<byte[]>("PasswordSalt")
                         .HasColumnType("varbinary(max)");
 
@@ -154,6 +157,7 @@ namespace Unilever.v1.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Role")
+                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Status")
@@ -161,6 +165,7 @@ namespace Unilever.v1.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Title")
+                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("UserImage")

@@ -1,3 +1,4 @@
+using System.Collections.Immutable;
 using System.Reflection.Metadata;
 using System;
 using System.Collections.Generic;
@@ -18,6 +19,8 @@ using Unilever.v1.Database.config;
 using Unilever.v1.Models.Http.HttpRes.User;
 using Unilever.v1.Models.Token;
 using Unilever.v1.Models.UserConf;
+using Unilever.v1.Models.Http.HttpReq;
+using Microsoft.AspNetCore.Authorization;
 
 namespace Unilever.v1.Controllers
 {
@@ -38,6 +41,7 @@ namespace Unilever.v1.Controllers
 
         [HttpGet]
         [Route("users")]
+        [Authorize(Roles = "System")]
         public ActionResult<AllUsersRes> GetAllUsers()
         {
             var token = HttpContext.Request.Cookies.TryGetValue("RefreshToken", out string? cookieValue);
@@ -47,8 +51,10 @@ namespace Unilever.v1.Controllers
 
                 if (userToken != null)
                 {
+                    var isOwner = CheckAccess(userToken, "Owner");
+                    var isAdmin = CheckAccess(userToken, "Admin");
 
-                    if (CheckAccess(userToken, "Admin"))
+                    if (isOwner || isAdmin)
                     {
                         List<AllUsersRes> res = new List<AllUsersRes>();
                         var users = _dbContext.User.ToList();
@@ -68,7 +74,7 @@ namespace Unilever.v1.Controllers
                     }
                     else
                     {
-                        return Unauthorized("You not allowed to access this resource.");
+                        return Forbid("You not allowed to access this resource.");
                     }
                 }
             }
@@ -76,7 +82,7 @@ namespace Unilever.v1.Controllers
             {
                 return Unauthorized("Login first");
             }
-            return Ok("Internal Server error");
+            return StatusCode(500, "Internal server error");
         }
 
         [HttpGet]
@@ -94,6 +100,7 @@ namespace Unilever.v1.Controllers
 
         [HttpPost]
         [Route("register")]
+        [Authorize(Roles = "System")]
         public async Task<ActionResult<User>> Register(UserDto req)
         {
             var token = HttpContext.Request.Cookies.TryGetValue("RefreshToken", out string? cookieValue);
@@ -101,7 +108,10 @@ namespace Unilever.v1.Controllers
             {
                 var userToken = cookieValue;
 
-                if (CheckAccess(userToken, "Admin"))
+                var isOwner = CheckAccess(userToken, "Owner");
+                var isAdmin = CheckAccess(userToken, "Admin");
+
+                if (isAdmin || isOwner)
                 {
                     var AreaCd = req.AreaCd;
                     var isExistArea = _dbContext.Area.SingleOrDefault(a => a.AreaCd == AreaCd);
@@ -116,6 +126,11 @@ namespace Unilever.v1.Controllers
                         return BadRequest("Not available Title, create one?");
                     }
 
+                    if (isOwner == false && req.Title.Contains("Admin"))
+                    {
+                        return Ok("You can not add a new Administrator");
+                    }
+
                     //add new account's email to Area which have this account
                     var users = ConvertJsonToStringList(isExistArea.Users);
                     users.Add(req.Email);
@@ -123,9 +138,9 @@ namespace Unilever.v1.Controllers
 
                     string password = GenerateRandomString();
                     CreatePasswordHash(password, out byte[] passwordHash, out byte[] passwordSalt);
-
+                    var PasswordTimeLife = CalPasswordTimeLife();
                     //create a new account
-                    var NewUser = new User(req.Name, req.Email, req.Title, req.AreaCd, req.Status, req.Role, req.Reporter, passwordHash, passwordSalt);
+                    var NewUser = new User(req.Name, req.Email, req.Title, req.AreaCd, req.Status, req.Role, req.Reporter, passwordHash, passwordSalt, PasswordTimeLife);
                     _dbContext.Add(NewUser);
                     await _dbContext.SaveChangesAsync();
 
@@ -140,16 +155,55 @@ namespace Unilever.v1.Controllers
                 }
                 else
                 {
-                    return Unauthorized("You don have permission to access this resource.");
+                    return Forbid("You don have permission to access this resource.");
                 }
             }
             else
             {
                 return Unauthorized("Login first to access this resource");
             }
-
-            return Ok("Internal server error");
         }
+
+        // [HttpPost]
+        // [Route("register")]
+        // public async Task<ActionResult<User>> Register(UserDto req)
+        // {
+        //     var AreaCd = req.AreaCd;
+        //     var isExistArea = _dbContext.Area.SingleOrDefault(a => a.AreaCd == AreaCd);
+        //     if (isExistArea == null)
+        //     {
+        //         return BadRequest("Not available Area");
+        //     }
+
+        //     var isExistTitle = _dbContext.Title.SingleOrDefault(t => t.TitleName.ToUpper() == req.Title.ToUpper());
+        //     if (isExistTitle == null)
+        //     {
+        //         return BadRequest("Not available Title, create one?");
+        //     }
+
+        //     //add new account's email to Area which have this account
+        //     var users = ConvertJsonToStringList(isExistArea.Users);
+        //     users.Add(req.Email);
+        //     isExistArea.Users = ConvertStringToJson(users);
+
+        //     string password = GenerateRandomString();
+        //     CreatePasswordHash(password, out byte[] passwordHash, out byte[] passwordSalt);
+        //     var PasswordTimeLife = CalPasswordTimeLife();
+        //     //create a new account
+        //     var NewUser = new User(req.Name, req.Email, req.Title, req.AreaCd, req.Status, req.Role, req.Reporter, passwordHash, passwordSalt, PasswordTimeLife);
+        //     _dbContext.Add(NewUser);
+        //     await _dbContext.SaveChangesAsync();
+
+
+        //     MailerService mailer = new MailerService();
+        //     string recipient = req.Email;
+        //     string subject = "Welcome to our site!";
+        //     string body = $"Your login account information: \n Email: {req.Email} \n Password: {password}";
+        //     mailer.SendMail(recipient, subject, body);
+
+        //     return CreatedAtAction(nameof(Register), new { Username = req.Name }, user);
+        // }
+
 
         [HttpPost]
         [Route("login")]
@@ -226,6 +280,52 @@ namespace Unilever.v1.Controllers
             return Ok("Check your email address to get reset password");
         }
 
+        [HttpPost]
+        [Route("/changed-password")]
+        public async Task<ActionResult<dynamic>> ChangePassword([FromBody] ChangePasswordModel req)
+        {
+            //get user information
+            var token = HttpContext.Request.Cookies.TryGetValue("RefreshToken", out string? cookieValue);
+            var userToken = "";
+            if (token == null)
+            {
+                return Unauthorized("Login first to access this resource");
+            }
+            else
+            {
+                userToken = cookieValue;
+            }
+            var user = _dbContext.User.FirstOrDefault(u => u.RefreshToken == userToken);
+            if (user == null)
+            {
+                return Unauthorized("Login first ");
+            }
+
+            CreatePasswordHash(req.newPassword, out byte[] passwordHash, out byte[] passwordSalt);
+
+            if (IsPasswordValid(req.newPassword) == false)
+            {
+                return Ok("Your password is invalid");
+            }
+
+            //check password is valid?
+            if (VerifyPassword(req.oldPassword, user.PasswordHash, user.PasswordSalt) == false)
+            {
+                return Ok("Your password is incorrect");
+            }
+
+            if (req.newPassword.Contains(req.newPasswordReType) == false)
+            {
+                return Ok("retype new password is no match with your new password");
+            }
+            user.PasswordHash = passwordHash;
+            user.PasswordSalt = passwordSalt;
+
+            await _dbContext.SaveChangesAsync();
+
+            return Ok("Your password changed successfully");
+        }
+
         [HttpGet]
         [Route("me")]
         public ActionResult<UserDto> getCurrentUser()
@@ -264,8 +364,8 @@ namespace Unilever.v1.Controllers
         {
             List<Claim> claims = new List<Claim>
             {
-                new Claim(ClaimTypes.Email, user.Email),
-                new Claim(ClaimTypes.Name, user.Name)
+                new Claim(ClaimTypes.Name, user.Name),
+                new Claim(ClaimTypes.Role, user.Role)
             };
             var key = new SymmetricSecurityKey(System.Text.Encoding.UTF8.GetBytes(_config.GetSection("Key:Token").Value));
 
@@ -364,19 +464,66 @@ namespace Unilever.v1.Controllers
         // }
 
         [HttpPost]
-        public bool CheckAccess(string token, string accessRole)
+        public bool CheckAccess(string token, string accessTitle)
         {
             // ...
             var user = _dbContext.User.FirstOrDefault(u => u.RefreshToken == token);
 
             if (user != null)
             {
-                return user.Role.Contains(accessRole);
+                return user.Title.Contains(accessTitle);
             }
             else
             {
                 return false;
             }
         }
+
+        public static bool IsPasswordValid(string password)
+        {
+            // Check for minimum length
+            if (password.Length < 8)
+            {
+                return false;
+            }
+
+            // Check for required characters
+            bool hasUpperCase = false;
+            bool hasLowerCase = false;
+            bool hasDigit = false;
+            bool hasSpecialChar = false;
+
+            foreach (char c in password)
+            {
+                if (char.IsUpper(c))
+                {
+                    hasUpperCase = true;
+                }
+                else if (char.IsLower(c))
+                {
+                    hasLowerCase = true;
+                }
+                else if (char.IsDigit(c))
+                {
+                    hasDigit = true;
+                }
+                else if (!char.IsLetterOrDigit(c))
+                {
+                    hasSpecialChar = true;
+                }
+            }
+
+            return hasUpperCase && hasLowerCase && hasDigit && hasSpecialChar;
+        }
+
+        private dynamic CalPasswordTimeLife()
+        {
+            int countMonth = _config.GetValue<int>("CountMonthForPasswordLifeTime:Time");
+            var now = DateTime.Now;
+
+            var result = now.AddMonths(countMonth);
+            return result;
+        }
+
     }
 }

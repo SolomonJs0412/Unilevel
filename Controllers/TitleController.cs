@@ -86,7 +86,7 @@ namespace Unilever.v1.Controllers
             {
                 var userToken = cookieValue;
 
-                if (CheckAccess(userToken, "Admin"))
+                if (CheckAccess(userToken, ""))
                 {
                     var isExistingTitle = _dbContext.Title.FirstOrDefault(t => t.TitleName.ToUpper() == req.TitleName.ToUpper());
                     if (isExistingTitle != null) return BadRequest("Title already exists");

@@ -12,7 +12,7 @@ using Unilever.v1.Database.config;
 namespace Unilever.v1.Migrations
 {
     [DbContext(typeof(UnileverDbContext))]
-    [Migration("20230504150835_Cons")]
+    [Migration("20230513072829_Cons")]
     partial class Cons
     {
         /// <inheritdoc />
@@ -146,6 +146,9 @@ namespace Unilever.v1.Migrations
                     b.Property<byte[]>("PasswordHash")
                         .HasColumnType("varbinary(max)");
 
+                    b.Property<DateTime>("PasswordLifeTime")
+                        .HasColumnType("datetime2");
+
                     b.Property<byte[]>("PasswordSalt")
                         .HasColumnType("varbinary(max)");
 
@@ -157,6 +160,7 @@ namespace Unilever.v1.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Role")
+                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Status")
@@ -164,6 +168,7 @@ namespace Unilever.v1.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Title")
+                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("UserImage")

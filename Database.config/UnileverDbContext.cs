@@ -10,6 +10,7 @@ using Unilever.v1.Models.RoleConf;
 using Unilever.v1.Models.UserConf;
 using Unilever.v1.Models.DistributorConf;
 using Unilever.v1.Models.Title;
+using Unilever.v1.Models.SaleSUP;
 
 namespace Unilever.v1.Database.config
 {
@@ -25,5 +26,6 @@ namespace Unilever.v1.Database.config
         public DbSet<Role> Role { get; set; }
         public DbSet<Title> Title { get; set; }
         public DbSet<Distributor> Distributor { get; set; }
+        public DbSet<SaleSUP> SaleSUP { get; set; }
     }
 }
