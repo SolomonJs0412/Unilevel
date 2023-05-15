@@ -26,8 +26,10 @@ namespace Unilever.v1.Models.UserConf
         public string RefreshToken { get; set; } = string.Empty;
         public DateTime CreatedTime { get; set; }
         public DateTime ExpiresTime { get; set; }
+        public DateTime? LastLogin { get; set; }
+
         public User() { }
-        public User(string Name, string Email, string Title, string AreaCd, string Status, string Role, string Reporter, byte[] PasswordHash, byte[] PasswordSalt, DateTime PasswordLifeTime)
+        public User(string Name, string Email, string Title, string AreaCd, string Status, string Role, string Reporter, byte[] PasswordHash, byte[] PasswordSalt, DateTime PasswordLifeTime, DateTime LastLogin)
         {
             this.Name = Name;
             this.Email = Email;
@@ -39,6 +41,7 @@ namespace Unilever.v1.Models.UserConf
             this.PasswordHash = PasswordHash;
             this.PasswordSalt = PasswordSalt;
             this.PasswordLifeTime = PasswordLifeTime;
+            this.LastLogin = LastLogin;
         }
 
     }

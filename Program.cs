@@ -4,8 +4,10 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using Swashbuckle.AspNetCore.Filters;
+using Unilever.v1.Common;
 using Unilever.v1.Common.SearchService;
 using Unilever.v1.Database.config;
+using Unilever.v1.Utils;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -28,6 +30,7 @@ builder.Services.AddCors(options =>
 });
 
 builder.Services.AddScoped<ISearchService, SqlSearchService>();
+builder.Services.AddScoped<IGetAllUsers, GetAllUsers>();
 
 builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
@@ -59,6 +62,7 @@ builder.Services.AddAuthentication(
             ValidateAudience = false
         };
     });
+builder.Services.AddHostedService<CallNotWorkingUser>();
 
 var app = builder.Build();
 

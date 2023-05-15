@@ -61,6 +61,13 @@ namespace Unilever.v1.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<string>("AreaCd")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("DistributorUsers")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<string>("Email")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
@@ -92,6 +99,27 @@ namespace Unilever.v1.Migrations
                     b.HasKey("RoleCd");
 
                     b.ToTable("Role");
+                });
+
+            modelBuilder.Entity("Unilever.v1.Models.SaleSUP.SaleSUP", b =>
+                {
+                    b.Property<int>("SaleID")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("SaleID"));
+
+                    b.Property<string>("DistributorCd")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("SaleSUPCd")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("SaleID");
+
+                    b.ToTable("SaleSUP");
                 });
 
             modelBuilder.Entity("Unilever.v1.Models.Title.Title", b =>
@@ -134,6 +162,9 @@ namespace Unilever.v1.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<DateTime>("ExpiresTime")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("LastLogin")
                         .HasColumnType("datetime2");
 
                     b.Property<string>("Name")

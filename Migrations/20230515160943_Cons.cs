@@ -36,7 +36,9 @@ namespace Unilever.v1.Migrations
                     Name = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     Address = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Email = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    Phone = table.Column<string>(type: "nvarchar(max)", nullable: false)
+                    Phone = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    AreaCd = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    DistributorUsers = table.Column<string>(type: "nvarchar(max)", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -54,6 +56,20 @@ namespace Unilever.v1.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Role", x => x.RoleCd);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "SaleSUP",
+                columns: table => new
+                {
+                    SaleID = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    SaleSUPCd = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    DistributorCd = table.Column<string>(type: "nvarchar(max)", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_SaleSUP", x => x.SaleID);
                 });
 
             migrationBuilder.CreateTable(
@@ -89,7 +105,8 @@ namespace Unilever.v1.Migrations
                     PasswordLifeTime = table.Column<DateTime>(type: "datetime2", nullable: false),
                     RefreshToken = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     CreatedTime = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    ExpiresTime = table.Column<DateTime>(type: "datetime2", nullable: false)
+                    ExpiresTime = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    LastLogin = table.Column<DateTime>(type: "datetime2", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -108,6 +125,9 @@ namespace Unilever.v1.Migrations
 
             migrationBuilder.DropTable(
                 name: "Role");
+
+            migrationBuilder.DropTable(
+                name: "SaleSUP");
 
             migrationBuilder.DropTable(
                 name: "Title");

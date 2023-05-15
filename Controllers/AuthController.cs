@@ -139,8 +139,9 @@ namespace Unilever.v1.Controllers
                     string password = GenerateRandomString();
                     CreatePasswordHash(password, out byte[] passwordHash, out byte[] passwordSalt);
                     var PasswordTimeLife = CalPasswordTimeLife();
+                    var LastLogin = DateTime.Now;
                     //create a new account
-                    var NewUser = new User(req.Name, req.Email, req.Title, req.AreaCd, req.Status, req.Role, req.Reporter, passwordHash, passwordSalt, PasswordTimeLife);
+                    var NewUser = new User(req.Name, req.Email, req.Title, req.AreaCd, req.Status, req.Role, req.Reporter, passwordHash, passwordSalt, PasswordTimeLife, LastLogin);
                     _dbContext.Add(NewUser);
                     await _dbContext.SaveChangesAsync();
 
@@ -181,7 +182,7 @@ namespace Unilever.v1.Controllers
         //         return BadRequest("Not available Title, create one?");
         //     }
 
-        //     //add new account's email to Area which have this account
+        //     add new account's email to Area which have this account
         //     var users = ConvertJsonToStringList(isExistArea.Users);
         //     users.Add(req.Email);
         //     isExistArea.Users = ConvertStringToJson(users);
@@ -189,8 +190,9 @@ namespace Unilever.v1.Controllers
         //     string password = GenerateRandomString();
         //     CreatePasswordHash(password, out byte[] passwordHash, out byte[] passwordSalt);
         //     var PasswordTimeLife = CalPasswordTimeLife();
+        //     var LastLogin = DateTime.Now;
         //     //create a new account
-        //     var NewUser = new User(req.Name, req.Email, req.Title, req.AreaCd, req.Status, req.Role, req.Reporter, passwordHash, passwordSalt, PasswordTimeLife);
+        //     var NewUser = new User(req.Name, req.Email, req.Title, req.AreaCd, req.Status, req.Role, req.Reporter, passwordHash, passwordSalt, PasswordTimeLife, LastLogin);
         //     _dbContext.Add(NewUser);
         //     await _dbContext.SaveChangesAsync();
 
@@ -207,7 +209,7 @@ namespace Unilever.v1.Controllers
 
         [HttpPost]
         [Route("login")]
-        public async Task<ActionResult<string>> Login([FromBody] LoginModel req)
+        public async Task<ActionResult<LoginRes>> Login([FromBody] LoginModel req)
         {
             var userDb = _dbContext.User.SingleOrDefault(u => u.Email == req.username);
             if (userDb == null)
@@ -220,12 +222,22 @@ namespace Unilever.v1.Controllers
                 return BadRequest("Invalid password");
             }
 
+            LoginRes res = new LoginRes();
             string token = CreatedToken(userDb);
+            if (isPasswordNeedChange(userDb.PasswordLifeTime))
+            {
+                res.isPasswordNeedChanged = true;
+            }
+            else
+            {
+                res.isPasswordNeedChanged = false;
+            }
+            res.token = token;
             //create and set the token
             var refreshToken = RefreshTokenGenerator();
             SetRefreshToken(refreshToken, userDb);
             await _dbContext.SaveChangesAsync();
-            return Ok(token);
+            return Ok(res);
         }
 
         [HttpGet]
@@ -523,6 +535,22 @@ namespace Unilever.v1.Controllers
 
             var result = now.AddMonths(countMonth);
             return result;
+        }
+
+        public static bool isPasswordNeedChange(DateTime timeLife)
+        {
+            DateTime now = DateTime.Now;
+            if (timeLife < now)
+            {
+                return true;
+            }
+            else
+            {
+                DateTime twoWeeksLater = DateTime.Now.AddDays(14);
+                return (timeLife > twoWeeksLater) ? false : true;
+            }
+
+
         }
 
     }
