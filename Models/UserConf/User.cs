@@ -11,7 +11,8 @@ namespace Unilever.v1.Models.UserConf
     {
         [Key]
         public int UserCd { get; set; }
-        public string AreaCd { get; set; }
+        public string? AreaCd { get; set; }
+        public int? DistributorCd { get; set; }
         public String Email { get; set; } = String.Empty;
         public String Name { get; set; } = String.Empty;
         public string Status { get; set; } = "Active";
@@ -19,9 +20,11 @@ namespace Unilever.v1.Models.UserConf
         public string Role { get; set; } = String.Empty;
         public string Title { get; set; } = string.Empty;
         public string? UserImage { get; set; }
+        public string? PhoneNumber { get; set; }
         public string? Reporter { get; set; } = String.Empty;
         public byte[]? PasswordHash { get; set; }
         public byte[]? PasswordSalt { get; set; }
+        public string? Address { get; set; }
         public DateTime PasswordLifeTime { get; set; }
         public string RefreshToken { get; set; } = string.Empty;
         public DateTime CreatedTime { get; set; }

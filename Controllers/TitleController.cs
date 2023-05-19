@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Unilever.v1.Database.config;
 using Unilever.v1.Models.Title;
@@ -21,6 +22,7 @@ namespace Unilever.v1.Controllers
             _dbContext = dbContext;
         }
         [HttpGet]
+        [Authorize(Roles = "System, Sales")]
         [Route("all-titles")]
         public ActionResult<List<Title>> GetAllTitles()
         {
@@ -29,7 +31,11 @@ namespace Unilever.v1.Controllers
             {
                 var userToken = cookieValue;
 
-                if (CheckAccess(userToken, "Admin"))
+                var isOwner = CheckAccess(userToken, "Owner");
+                var isAdmin = CheckAccess(userToken, "Admin");
+                var isVPCD = CheckAccess(userToken, "VPCD");
+
+                if (isOwner || isAdmin || isVPCD)
                 {
                     List<Title> titles = new List<Title>();
                     titles = _dbContext.Title.ToList();
@@ -38,18 +44,17 @@ namespace Unilever.v1.Controllers
                 }
                 else
                 {
-                    return Unauthorized("You don have permission to access this resource.");
+                    return Forbid("You doesn't have permission to access this resource");
                 }
             }
             else
             {
-                return Unauthorized("Login first to access this resource");
+                return Unauthorized("Login first to use this resource");
             }
-
-            return Ok("Internal server error");
         }
 
         [HttpGet]
+        [Authorize(Roles = "System, Sales")]
         [Route("titles/{id}")]
         public ActionResult<List<Title>> GetTitle([FromHeader] int id)
         {
@@ -58,7 +63,11 @@ namespace Unilever.v1.Controllers
             {
                 var userToken = cookieValue;
 
-                if (CheckAccess(userToken, "Admin"))
+                var isOwner = CheckAccess(userToken, "Owner");
+                var isAdmin = CheckAccess(userToken, "Admin");
+                var isVPCD = CheckAccess(userToken, "VPCD");
+
+                if (isOwner || isAdmin || isVPCD)
                 {
                     var isExistingTitle = _dbContext.Title.FirstOrDefault(t => t.TitleCd == id);
                     if (isExistingTitle == null) return BadRequest("Title not exists");
@@ -66,19 +75,18 @@ namespace Unilever.v1.Controllers
                 }
                 else
                 {
-                    return Unauthorized("You don have permission to access this resource.");
+                    return Forbid("You doesn't have permission to access this resource");
                 }
             }
             else
             {
-                return Unauthorized("Login first to access this resource");
+                return Unauthorized("Login first to use this resource");
             }
-
-            return Ok("Internal server error");
         }
 
         [HttpPost]
         [Route("new-title")]
+        [Authorize(Roles = "System")]
         public async Task<ActionResult<dynamic>> NewTitle([FromBody] TitleDto req)
         {
             var token = HttpContext.Request.Cookies.TryGetValue("RefreshToken", out string? cookieValue);
@@ -86,7 +94,10 @@ namespace Unilever.v1.Controllers
             {
                 var userToken = cookieValue;
 
-                if (CheckAccess(userToken, ""))
+                var isOwner = CheckAccess(userToken, "Owner");
+                var isAdmin = CheckAccess(userToken, "Admin");
+
+                if (isOwner || isAdmin)
                 {
                     var isExistingTitle = _dbContext.Title.FirstOrDefault(t => t.TitleName.ToUpper() == req.TitleName.ToUpper());
                     if (isExistingTitle != null) return BadRequest("Title already exists");
@@ -100,28 +111,29 @@ namespace Unilever.v1.Controllers
                 }
                 else
                 {
-                    return Unauthorized("You don have permission to access this resource.");
+                    return Forbid("You doesn't have permission to access this resource");
                 }
             }
             else
             {
-                return Unauthorized("Login first to access this resource");
+                return Unauthorized("Login first to use this resource");
             }
-
-            return Ok("Internal server error");
         }
 
         [HttpPost]
+        [Authorize(Roles = "System")]
         [Route("titles/{cd}")]
         public async Task<ActionResult<dynamic>> UpdateTitle([FromBody] TitleDto req)
         {
-
             var token = HttpContext.Request.Cookies.TryGetValue("RefreshToken", out string? cookieValue);
             if (token)
             {
                 var userToken = cookieValue;
 
-                if (CheckAccess(userToken, "Admin"))
+                var isOwner = CheckAccess(userToken, "Owner");
+                var isAdmin = CheckAccess(userToken, "Admin");
+
+                if (isOwner || isAdmin)
                 {
                     var isExistingTitle = _dbContext.Title.FirstOrDefault(t => t.TitleName.ToUpper() == req.TitleName.ToUpper());
                     if (isExistingTitle == null) return BadRequest("Title is not available");
@@ -133,20 +145,19 @@ namespace Unilever.v1.Controllers
                 }
                 else
                 {
-                    return Unauthorized("You don have permission to access this resource.");
+                    return Forbid("You doesn't have permission to access this resource");
                 }
             }
             else
             {
-                return Unauthorized("Login first to access this resource");
+                return Unauthorized("Login first to use this resource");
             }
-
-            return Ok("Internal server error");
         }
 
         [HttpDelete]
+        [Authorize(Roles = "System")]
         [Route("delete/{id}")]
-        public dynamic DeleteTitle([FromHeader] int id)
+        public async Task<dynamic> DeleteTitle([FromHeader] int id)
         {
 
             var token = HttpContext.Request.Cookies.TryGetValue("RefreshToken", out string? cookieValue);
@@ -154,34 +165,39 @@ namespace Unilever.v1.Controllers
             {
                 var userToken = cookieValue;
 
-                if (CheckAccess(userToken, "Admin"))
+                var isOwner = CheckAccess(userToken, "Owner");
+                var isAdmin = CheckAccess(userToken, "Admin");
+                var isVPCD = CheckAccess(userToken, "VPCD");
+
+                if (isOwner || isAdmin || isVPCD)
                 {
                     var isExistingTitle = _dbContext.Title.FirstOrDefault(t => t.TitleCd == id);
                     if (isExistingTitle == null) return BadRequest("Title is not available");
+
+                    _dbContext.Title.Remove(isExistingTitle);
+                    await _dbContext.SaveChangesAsync();
                     return Ok("Delete Title successfully");
                 }
                 else
                 {
-                    return Unauthorized("You don have permission to access this resource.");
+                    return Forbid("You doesn't have permission to access this resource");
                 }
             }
             else
             {
-                return Unauthorized("Login first to access this resource");
+                return Unauthorized("Login first to use this resource");
             }
-
-            return Ok("Internal server error");
         }
 
         [HttpPost]
-        public bool CheckAccess(string token, string accessRole)
+        public bool CheckAccess(string token, string accessTitle)
         {
             // ...
             var user = _dbContext.User.FirstOrDefault(u => u.RefreshToken == token);
 
             if (user != null)
             {
-                return user.Role.Contains(accessRole);
+                return user.Title.Contains(accessTitle);
             }
             else
             {

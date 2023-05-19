@@ -49,6 +49,68 @@ namespace Unilever.v1.Migrations
                     b.ToTable("Area");
                 });
 
+            modelBuilder.Entity("Unilever.v1.Models.CMS.CMSModel", b =>
+                {
+                    b.Property<int>("CMSCd")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("CMSCd"));
+
+                    b.Property<string>("BannerURL")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("Created")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Description")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("HyperText")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("UserCd")
+                        .HasColumnType("int");
+
+                    b.HasKey("CMSCd");
+
+                    b.ToTable("CMS");
+                });
+
+            modelBuilder.Entity("Unilever.v1.Models.Comment.Comment", b =>
+                {
+                    b.Property<int>("CommentCd")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("CommentCd"));
+
+                    b.Property<string>("CommentContent")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("Rate")
+                        .HasColumnType("int");
+
+                    b.Property<int>("TaskCd")
+                        .HasColumnType("int");
+
+                    b.Property<int>("UserCommentId")
+                        .HasColumnType("int");
+
+                    b.HasKey("CommentCd");
+
+                    b.ToTable("Comment");
+                });
+
             modelBuilder.Entity("Unilever.v1.Models.DistributorConf.Distributor", b =>
                 {
                     b.Property<int>("DistributorCd")
@@ -79,9 +141,153 @@ namespace Unilever.v1.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<int>("SaleSUPCd")
+                        .HasColumnType("int");
+
                     b.HasKey("DistributorCd");
 
                     b.ToTable("Distributor");
+                });
+
+            modelBuilder.Entity("Unilever.v1.Models.DistributorConf.DistributorPlan", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("DistributorCd")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Plans")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("DistributorPlan");
+                });
+
+            modelBuilder.Entity("Unilever.v1.Models.Notification.NotificationModel", b =>
+                {
+                    b.Property<int>("NotificationCd")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("NotificationCd"));
+
+                    b.Property<string>("Message")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("SenderName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("UserCd")
+                        .HasColumnType("int");
+
+                    b.HasKey("NotificationCd");
+
+                    b.ToTable("Notification");
+                });
+
+            modelBuilder.Entity("Unilever.v1.Models.Plan.Plan", b =>
+                {
+                    b.Property<int>("PlanId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("PlanId"));
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("DistributorCd")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("EndDay")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Invited")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("StartDay")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("TimeOfPlan")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("UserReq")
+                        .HasColumnType("int");
+
+                    b.HasKey("PlanId");
+
+                    b.ToTable("Plan");
+                });
+
+            modelBuilder.Entity("Unilever.v1.Models.Plan.PlanDetail", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Images")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("PlanCd")
+                        .HasColumnType("int");
+
+                    b.Property<string>("PlanName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("PlanDetail");
+                });
+
+            modelBuilder.Entity("Unilever.v1.Models.Question.QuestionModel", b =>
+                {
+                    b.Property<int>("QuestionCd")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("QuestionCd"));
+
+                    b.Property<string>("Answers")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("CorrectAnswer")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("QuestionTitle")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("SurveyCd")
+                        .HasColumnType("int");
+
+                    b.Property<int>("isHasMoreCorrectAnswer")
+                        .HasColumnType("int");
+
+                    b.HasKey("QuestionCd");
+
+                    b.ToTable("Question");
                 });
 
             modelBuilder.Entity("Unilever.v1.Models.RoleConf.Role", b =>
@@ -122,6 +328,93 @@ namespace Unilever.v1.Migrations
                     b.ToTable("SaleSUP");
                 });
 
+            modelBuilder.Entity("Unilever.v1.Models.Surveys.Survey", b =>
+                {
+                    b.Property<int>("SurveyCd")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("SurveyCd"));
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("SurveyTitle")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("SurveyCd");
+
+                    b.ToTable("Survey");
+                });
+
+            modelBuilder.Entity("Unilever.v1.Models.Task.TaskDetail", b =>
+                {
+                    b.Property<int>("TaskDetailId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("TaskDetailId"));
+
+                    b.Property<int>("Rating")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("TaskId")
+                        .HasColumnType("int");
+
+                    b.HasKey("TaskDetailId");
+
+                    b.ToTable("TaskDetail");
+                });
+
+            modelBuilder.Entity("Unilever.v1.Models.Task.TaskModel", b =>
+                {
+                    b.Property<int>("TaskCd")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("TaskCd"));
+
+                    b.Property<DateTime>("EndDay")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("PlanCd")
+                        .HasColumnType("int");
+
+                    b.Property<string>("PlanName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Resources")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("StartDay")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("TaskDescription")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("TaskName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("UserAssigned")
+                        .HasColumnType("int");
+
+                    b.Property<int>("UserCd")
+                        .HasColumnType("int");
+
+                    b.HasKey("TaskCd");
+
+                    b.ToTable("Task");
+                });
+
             modelBuilder.Entity("Unilever.v1.Models.Title.Title", b =>
                 {
                     b.Property<int>("TitleCd")
@@ -150,12 +443,17 @@ namespace Unilever.v1.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("UserCd"));
 
+                    b.Property<string>("Address")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<string>("AreaCd")
-                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<DateTime>("CreatedTime")
                         .HasColumnType("datetime2");
+
+                    b.Property<int?>("DistributorCd")
+                        .HasColumnType("int");
 
                     b.Property<string>("Email")
                         .IsRequired()
@@ -179,6 +477,9 @@ namespace Unilever.v1.Migrations
 
                     b.Property<byte[]>("PasswordSalt")
                         .HasColumnType("varbinary(max)");
+
+                    b.Property<string>("PhoneNumber")
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("RefreshToken")
                         .IsRequired()

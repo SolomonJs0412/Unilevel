@@ -29,20 +29,6 @@ namespace Unilever.v1.Utils
             {
                 try
                 {
-                    // var httpClient = new HttpClient();
-
-                    // var apiUrl = "https://ce75-171-252-188-219.ngrok-free.app/api/Support";
-                    // // var response = await httpClient.GetAsync(apiUrl);
-
-                    // HttpClientHandler clientHandler = new HttpClientHandler();
-                    // clientHandler.ServerCertificateCustomValidationCallback = (sender, cert, chain, sslPolicyErrors) => { return true; };
-
-                    // // Pass the handler to httpclient(from you are calling api)
-                    // HttpClient client = new HttpClient(clientHandler);
-                    // client.BaseAddress = new Uri("https://ce75-171-252-188-219.ngrok-free.app");
-                    // // var url = "https://localhost:7200/api/Support";
-                    // var response = await client.GetAsync("/api/Support");
-                    // Console.WriteLine(response.Headers);
                     var searchQuery = @"SELECT * FROM [User]
                                         WHERE LastLogin < DATEADD(MONTH, -3, GETDATE())";
 
@@ -75,7 +61,8 @@ namespace Unilever.v1.Utils
                 {
                     Console.WriteLine("Error: " + ex.Message);
                 }
-                await Task.Delay(TimeSpan.FromSeconds(5), stoppingToken);
+
+                await Task.Delay(TimeSpan.FromHours(24), stoppingToken);
             }
         }
     }

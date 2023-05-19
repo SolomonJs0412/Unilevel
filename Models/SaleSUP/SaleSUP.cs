@@ -12,5 +12,7 @@ namespace Unilever.v1.Models.SaleSUP
         public int SaleID { get; set; }
         public string SaleSUPCd { get; set; } = string.Empty;
         public string DistributorCd { get; set; } = string.Empty;
+
+        public SaleSUP() { }
     }
 }

@@ -18,11 +18,12 @@ namespace Unilever.v1.Models.DistributorConf
         public string AreaCd { get; set; } = String.Empty;
         [JsonProperty("user_lst")]
         public string? DistributorUsers { get; set; }
+        public int SaleSUPCd { get; set; }
 
 
         public Distributor() { }
 
-        public Distributor(string Name, String Address, String Phone, String AreaCd, String Email, String DistributorUsers)
+        public Distributor(string Name, String Address, String Phone, String AreaCd, String Email, String DistributorUsers, int SaleSUPCd)
         {
             this.Name = Name;
             this.Address = Address;
@@ -30,6 +31,7 @@ namespace Unilever.v1.Models.DistributorConf
             this.AreaCd = AreaCd;
             this.Email = Email;
             this.DistributorUsers = DistributorUsers;
+            this.SaleSUPCd = SaleSUPCd;
         }
     }
 }

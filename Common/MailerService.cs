@@ -14,7 +14,7 @@ namespace Unilever.v1.Common
 
             var client = new SmtpClient("sandbox.smtp.mailtrap.io", 2525)
             {
-                Credentials = new NetworkCredential("68aa3aac331718", "908b531461980a"),
+                Credentials = new NetworkCredential("997e556f69badb", "f15b049431093b"),
                 EnableSsl = true
             };
 

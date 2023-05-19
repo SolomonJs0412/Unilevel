@@ -12,5 +12,6 @@ namespace Unilever.v1.Models.DistributorConf
         public String Email { get; set; } = String.Empty;
         public String Phone { get; set; } = String.Empty;
         public string AreaCd { get; set; } = String.Empty;
+        public int SaleSUPCd { get; set; }
     }
 }

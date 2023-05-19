@@ -64,6 +64,16 @@ builder.Services.AddAuthentication(
     });
 builder.Services.AddHostedService<CallNotWorkingUser>();
 
+builder.Services.AddControllers()
+    .AddJsonOptions(options =>
+    {
+        options.JsonSerializerOptions.PropertyNamingPolicy = null;
+        options.JsonSerializerOptions.DictionaryKeyPolicy = null;
+    });
+
+builder.Services.AddDirectoryBrowser();
+
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.

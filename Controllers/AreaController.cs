@@ -29,7 +29,7 @@ namespace Unilever.v1.Controllers
 
         [HttpPost]
         [Route("news")]
-        [Authorize(Roles = "System, Sales")]
+        [Authorize(Roles = "System")]
         public async Task<ActionResult<Area>> CreateNewArea(AreaDto area)
         {
 
@@ -40,9 +40,8 @@ namespace Unilever.v1.Controllers
 
                 var isOwner = CheckAccess(userToken, "Owner");
                 var isAdmin = CheckAccess(userToken, "Admin");
-                var isVPCD = CheckAccess(userToken, "VPCD");
 
-                if (isOwner || isAdmin || isVPCD)
+                if (isOwner || isAdmin)
                 {
                     List<string> defaultValue = new List<string>();
                     defaultValue.Add("");
@@ -77,7 +76,7 @@ namespace Unilever.v1.Controllers
 
         [HttpGet]
         [Route("areas")]
-        [Authorize(Roles = "System, Sales")]
+        [Authorize(Roles = "System")]
         public async Task<ActionResult<List<Area>>> ShowAllArea()
         {
             var token = HttpContext.Request.Cookies.TryGetValue("RefreshToken", out string? cookieValue);
@@ -87,9 +86,8 @@ namespace Unilever.v1.Controllers
 
                 var isOwner = CheckAccess(userToken, "Owner");
                 var isAdmin = CheckAccess(userToken, "Admin");
-                var isVPCD = CheckAccess(userToken, "VPCD");
 
-                if (isOwner || isAdmin || isVPCD)
+                if (isOwner || isAdmin)
                 {
                     var areas = await _dbContext.Area.ToListAsync();
                     if (areas.Count == 0) return NotFound("No available areas");
@@ -106,9 +104,43 @@ namespace Unilever.v1.Controllers
             }
         }
 
+        [HttpPost]
+        [Route("/assign")]
+        [Authorize("System")]
+        public async Task<ActionResult<dynamic>> AssignUser(List<string> users, string AreaCd)
+        {
+
+            var area = _dbContext.Area.FirstOrDefault(a => a.AreaCd == AreaCd);
+            if (area == null) return NotFound("No available areas");
+            //check is existing user
+            foreach (var user in users)
+            {
+                var existUser = _dbContext.User.FirstOrDefault(u => u.Email == user);
+                if (existUser == null)
+                {
+                    users.Remove(user);
+                }
+            }
+            if (users.Count > 0)
+            {
+                foreach (var user in users)
+                {
+                    var userAdd = ConvertJsonToStringList(area.Users);
+                    userAdd.Add(user);
+                }
+                area.Users = ConvertStringToJson(users);
+                await _dbContext.SaveChangesAsync();
+            }
+            else
+            {
+                return Ok("Not valid user");
+            }
+            return Ok("Succeeded");
+        }
+
         [HttpGet]
         [Route("areas/{id}")]
-        [Authorize(Roles = "System, Sales")]
+        [Authorize(Roles = "System")]
         public async Task<ActionResult<Area>> ShowAreaWithId(string id)
         {
             var token = HttpContext.Request.Cookies.TryGetValue("RefreshToken", out string? cookieValue);
@@ -118,9 +150,8 @@ namespace Unilever.v1.Controllers
 
                 var isOwner = CheckAccess(userToken, "Owner");
                 var isAdmin = CheckAccess(userToken, "Admin");
-                var isVPCD = CheckAccess(userToken, "VPCD");
 
-                if (isOwner || isAdmin || isVPCD)
+                if (isOwner || isAdmin)
                 {
                     var area = _dbContext.Area.FirstOrDefault(a => a.AreaCd == id);
                     if (area == null) return NotFound("No available areas");
@@ -140,7 +171,7 @@ namespace Unilever.v1.Controllers
 
         [HttpGet]
         [Route("area-user/{id}")]
-        [Authorize(Roles = "System, Sales")]
+        [Authorize(Roles = "System")]
         public ActionResult<List<Area>> GetAllAreaUsers(string id)
         {
             var token = HttpContext.Request.Cookies.TryGetValue("RefreshToken", out string? cookieValue);
@@ -150,9 +181,8 @@ namespace Unilever.v1.Controllers
 
                 var isOwner = CheckAccess(userToken, "Owner");
                 var isAdmin = CheckAccess(userToken, "Admin");
-                var isVPCD = CheckAccess(userToken, "VPCD");
 
-                if (isOwner || isAdmin || isVPCD)
+                if (isOwner || isAdmin)
                 {
 
                     var isExistArea = _dbContext.Area.FirstOrDefault(a => a.AreaCd == id);
@@ -188,7 +218,7 @@ namespace Unilever.v1.Controllers
 
         [HttpPut]
         [Route("updates/{id}")]
-        [Authorize(Roles = "System, Sales")]
+        [Authorize(Roles = "System")]
         public async Task<ActionResult<Area>> Update(string id, [FromBody] AreaUpdateReq area)
         {
             var token = HttpContext.Request.Cookies.TryGetValue("RefreshToken", out string? cookieValue);
@@ -198,9 +228,8 @@ namespace Unilever.v1.Controllers
 
                 var isOwner = CheckAccess(userToken, "Owner");
                 var isAdmin = CheckAccess(userToken, "Admin");
-                var isVPCD = CheckAccess(userToken, "VPCD");
 
-                if (isOwner || isAdmin || isVPCD)
+                if (isOwner || isAdmin)
                 {
                     var isExistArea = _dbContext.Area.FirstOrDefault(a => a.AreaCd == id);
                     if (isExistArea == null) return NotFound("Not found any area with this code!");
@@ -224,7 +253,7 @@ namespace Unilever.v1.Controllers
         [HttpDelete]
         [Route("areas/{id}")]
         [Authorize(Roles = "System, Sales")]
-        public async Task<ActionResult<dynamic>> Delete(string id)
+        public async Task<ActionResult<dynamic>> DeleteArea(string id)
         {
             var token = HttpContext.Request.Cookies.TryGetValue("RefreshToken", out string? cookieValue);
             if (token)
@@ -233,9 +262,8 @@ namespace Unilever.v1.Controllers
 
                 var isOwner = CheckAccess(userToken, "Owner");
                 var isAdmin = CheckAccess(userToken, "Admin");
-                var isVPCD = CheckAccess(userToken, "VPCD");
 
-                if (isOwner || isAdmin || isVPCD)
+                if (isOwner || isAdmin)
                 {
                     var isExistArea = _dbContext.Area.FirstOrDefault(a => a.AreaCd == id);
                     if (isExistArea == null) return NotFound("Not found any area with this code!");

@@ -1,3 +1,4 @@
+using System.Buffers.Text;
 using System.Collections.Immutable;
 using System.Reflection.Metadata;
 using System;
@@ -86,6 +87,7 @@ namespace Unilever.v1.Controllers
         }
 
         [HttpGet]
+        [Authorize(Roles = "System, Sales, Distributor")]
         [Route("users/{id}")]
         public ActionResult<dynamic> GetOneUser(int id)
         {
@@ -96,6 +98,19 @@ namespace Unilever.v1.Controllers
             }
 
             return Ok(user);
+        }
+
+        [HttpGet]
+        [Route("users/title")]
+        public ActionResult<dynamic> GetAllUserWithTitle([FromHeader] string titleName)
+        {
+            List<User> users = _dbContext.User.Where(u => u.Title == titleName).ToList();
+            if (users == null)
+            {
+                return NotFound("Users not found");
+            }
+
+            return Ok(users);
         }
 
         [HttpPost]
@@ -164,47 +179,6 @@ namespace Unilever.v1.Controllers
                 return Unauthorized("Login first to access this resource");
             }
         }
-
-        // [HttpPost]
-        // [Route("register")]
-        // public async Task<ActionResult<User>> Register(UserDto req)
-        // {
-        //     var AreaCd = req.AreaCd;
-        //     var isExistArea = _dbContext.Area.SingleOrDefault(a => a.AreaCd == AreaCd);
-        //     if (isExistArea == null)
-        //     {
-        //         return BadRequest("Not available Area");
-        //     }
-
-        //     var isExistTitle = _dbContext.Title.SingleOrDefault(t => t.TitleName.ToUpper() == req.Title.ToUpper());
-        //     if (isExistTitle == null)
-        //     {
-        //         return BadRequest("Not available Title, create one?");
-        //     }
-
-        //     add new account's email to Area which have this account
-        //     var users = ConvertJsonToStringList(isExistArea.Users);
-        //     users.Add(req.Email);
-        //     isExistArea.Users = ConvertStringToJson(users);
-
-        //     string password = GenerateRandomString();
-        //     CreatePasswordHash(password, out byte[] passwordHash, out byte[] passwordSalt);
-        //     var PasswordTimeLife = CalPasswordTimeLife();
-        //     var LastLogin = DateTime.Now;
-        //     //create a new account
-        //     var NewUser = new User(req.Name, req.Email, req.Title, req.AreaCd, req.Status, req.Role, req.Reporter, passwordHash, passwordSalt, PasswordTimeLife, LastLogin);
-        //     _dbContext.Add(NewUser);
-        //     await _dbContext.SaveChangesAsync();
-
-
-        //     MailerService mailer = new MailerService();
-        //     string recipient = req.Email;
-        //     string subject = "Welcome to our site!";
-        //     string body = $"Your login account information: \n Email: {req.Email} \n Password: {password}";
-        //     mailer.SendMail(recipient, subject, body);
-
-        //     return CreatedAtAction(nameof(Register), new { Username = req.Name }, user);
-        // }
 
 
         [HttpPost]
@@ -338,16 +312,48 @@ namespace Unilever.v1.Controllers
             return Ok("Your password changed successfully");
         }
 
+        [HttpPut]
+        [Route("update/id")]
+        public async Task<ActionResult<User>> UpdateUser([FromBody] UserUpdateReq req, int id)
+        {
+            var token = HttpContext.Request.Cookies.TryGetValue("RefreshToken", out string? cookieValue);
+            if (token)
+            {
+                var userToken = cookieValue;
+
+                var user = _dbContext.User.FirstOrDefault(u => u.UserCd == id);
+
+                if (user == null)
+                {
+                    return NotFound();
+                }
+
+                user.Address = req.Address;
+                user.PhoneNumber = req.PhoneNumber;
+                user.Name = req.Name;
+
+                await _dbContext.SaveChangesAsync();
+                return Ok("Update changed successfully");
+            }
+            else
+            {
+                return Unauthorized("Login first to use this resource");
+            }
+            return Ok("Internal Server Error");
+        }
+
         [HttpGet]
         [Route("me")]
         public ActionResult<UserDto> getCurrentUser()
         {
             try
             {
-                if (HttpContext.Request.Cookies.TryGetValue("RefreshToken", out string? cookieValue))
+                var token = HttpContext.Request.Cookies.TryGetValue("RefreshToken", out string? cookieValue);
+                if (token)
                 {
-                    var token = cookieValue;
-                    var user = _dbContext.User.FirstOrDefault(u => u.RefreshToken == token);
+                    var userToken = cookieValue;
+                    var user = _dbContext.User.FirstOrDefault(u => u.RefreshToken == userToken);
+                    if (user != null) { return Ok(user); } else { return NotFound("Can't find user"); }
                 }
                 return Unauthorized("Login first");
             }

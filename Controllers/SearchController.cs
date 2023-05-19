@@ -28,5 +28,29 @@ namespace Unilever.v1.Controllers
             var results = await _search.SearchUser(query);
             return Ok(results);
         }
+
+        [HttpGet("search/areas")]
+        public async Task<ActionResult<List<object>>> SearchArea([FromHeader] string searchTerm)
+        {
+            var query = "'%" + searchTerm + "%'";
+            var results = await _search.SearchArea(query);
+            return Ok(results);
+        }
+
+        [HttpGet("search/notifications")]
+        public async Task<ActionResult<List<object>>> SearchNotification([FromHeader] string searchTerm)
+        {
+            var query = "'%" + searchTerm + "%'";
+            var results = await _search.SearchNotification(query);
+            return Ok(results);
+        }
+
+        [HttpGet("search/cms")]
+        public async Task<ActionResult<List<object>>> SearchCMS([FromHeader] string searchTerm)
+        {
+            var query = "'%" + searchTerm + "%'";
+            var results = await _search.SearchCMS(query);
+            return Ok(results);
+        }
     }
 }
